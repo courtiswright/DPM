@@ -4,90 +4,69 @@
 
 package ev3Odometer;
 
-import lejos.hardware.motor.EV3LargeRegulatedMotor;  
+import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Odometer extends Thread {
 	// robot position
 	private double x, y, theta;
-
+	private int leftMotorTachoCount, rightMotorTachoCount;
+	private EV3LargeRegulatedMotor leftMotor, rightMotor;
 	// odometer update period, in ms
 	private static final long ODOMETER_PERIOD = 25;
-
 	// lock object for mutual exclusion
 	private Object lock;
 	
-	private EV3LargeRegulatedMotor leftMotor, rightMotor;
-	
 	private double WR = 2.1;
-	private double WB = 10.5;
-	private double lastTachoR = 0;	
-	private double lastTachoL = 0;
-//	private double [] oldData = new double[2];
-//	private double [] data = new double[2];
-
+	private double WB = 10.05;
+	private double [] oldData, data;
+	
 	// default constructor
-	public Odometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor) {
-		x = 0.0;
-		y = 0.0;
-		theta = 0.0;
-		lock = new Object();
+	public Odometer(EV3LargeRegulatedMotor leftMotor,EV3LargeRegulatedMotor rightMotor) {
 		this.leftMotor = leftMotor;
 		this.rightMotor = rightMotor;
+		this.x = 0.0;
+		this.y = 0.0;
+		this.theta = 0.0;
+		this.leftMotorTachoCount = 0;
+		this.rightMotorTachoCount = 0;
+		this.data = new double[2];
+		this.oldData = new double[2];
+		lock = new Object();
 	}
 
 	// run method (required for Thread)
 	public void run() {
 		long updateStart, updateEnd;
-		
-		leftMotor.resetTachoCount();
-		rightMotor.resetTachoCount();
 
 		while (true) {
 			updateStart = System.currentTimeMillis();
 			
-			//MY CODE
-			int leftTach = leftMotor.getTachoCount();
-			int rightTach = rightMotor.getTachoCount();
-			
-//			//distance
-//			data[0] = ( leftTach * WR + rightTach* WR) * Math.PI/ 360;
-//			//direction
-//			data[1] = ( leftTach * WR - rightTach* WR) / WB;
-			
-			//END MY CODE
-			
-			double distL, distR, deltaD, deltaT, dX, dY;
-			distL= Math.PI*WR*(leftTach-lastTachoL)/180;		// compute wheel
-			distR= Math.PI*WR*(rightTach-lastTachoR)/180;		// displacements
-			lastTachoL=leftTach;								// save tachometer counts for next iteration
-			lastTachoR=rightTach;
-			deltaD= 0.5*(distL+distR);							// compute vehicle displacement
-			deltaT= (distL-distR)/WB;							// compute change in heading
-			
-			//store previous values
-//			oldData[0] = data[0];
-//			oldData[1] = data[1];
-			
+			//TODO put (some of) your odometer code here
+			this.getData(data);
+			data[0] -= oldData[0];
+			data[1] -= oldData[1];
 			
 			synchronized (lock) {
-				// don't use the variables x, y, or theta anywhere but here!
-				//theta = -0.7376;
-				theta += deltaT;					// update heading 
-				dX = deltaD * Math.sin(theta);		// compute X component of displacement 
-				dY = deltaD * Math.cos(theta);		// compute Y component of displacement
-				x = x + dX;            
-				y = y + dY;
+				/**
+				 * Don't use the variables x, y, or theta anywhere but here!
+				 * Only update the values of x, y, and theta in this block. 
+				 * Do not perform complex math
+				 * 
+				 */
+				theta += data[1];
+				theta = Math.abs(theta);
+
+				x += data[0] * Math.cos(Math.toRadians(theta));
+				y += data[0] * Math.sin(Math.toRadians(theta));	
 			}
-			
-			leftTach = leftMotor.getTachoCount();
-			rightTach = rightMotor.getTachoCount();
+			oldData[0] += data[0];
+			oldData[1] += data[1];
 
 			// this ensures that the odometer only runs once every period
 			updateEnd = System.currentTimeMillis();
 			if (updateEnd - updateStart < ODOMETER_PERIOD) {
 				try {
 					Thread.sleep(ODOMETER_PERIOD - (updateEnd - updateStart));
-					
 				} catch (InterruptedException e) {
 					// there is nothing to be done here because it is not
 					// expected that the odometer will be interrupted by
@@ -96,6 +75,17 @@ public class Odometer extends Thread {
 			}
 		}
 	}
+	
+	private void getData(double[] data) {
+		leftMotorTachoCount = leftMotor.getTachoCount();
+		rightMotorTachoCount = rightMotor.getTachoCount();
+		
+		//distance
+		data[0] = ( leftMotorTachoCount + rightMotorTachoCount)* WR * Math.PI/ 360;
+		//angle
+		data[1] = ( leftMotorTachoCount - rightMotorTachoCount) * WR / WB;
+	}
+
 
 	// accessors
 	public void getPosition(double[] position, boolean[] update) {
@@ -168,6 +158,38 @@ public class Odometer extends Thread {
 	public void setTheta(double theta) {
 		synchronized (lock) {
 			this.theta = theta;
+		}
+	}
+
+	/**
+	 * @return the leftMotorTachoCount
+	 */
+	public int getLeftMotorTachoCount() {
+		return leftMotorTachoCount;
+	}
+
+	/**
+	 * @param leftMotorTachoCount the leftMotorTachoCount to set
+	 */
+	public void setLeftMotorTachoCount(int leftMotorTachoCount) {
+		synchronized (lock) {
+			this.leftMotorTachoCount = leftMotorTachoCount;	
+		}
+	}
+
+	/**
+	 * @return the rightMotorTachoCount
+	 */
+	public int getRightMotorTachoCount() {
+		return rightMotorTachoCount;
+	}
+
+	/**
+	 * @param rightMotorTachoCount the rightMotorTachoCount to set
+	 */
+	public void setRightMotorTachoCount(int rightMotorTachoCount) {
+		synchronized (lock) {
+			this.rightMotorTachoCount = rightMotorTachoCount;	
 		}
 	}
 }
