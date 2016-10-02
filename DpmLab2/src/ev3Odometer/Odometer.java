@@ -18,7 +18,8 @@ public class Odometer extends Thread {
 	
 	private double WR = 2.1;
 	private double WB = 10.05;
-	private double [] oldData, data;
+	private double distance, angle;		//distance in cm, angle in deg
+	private double prevDistance, prevAngle;
 	
 	// default constructor
 	public Odometer(EV3LargeRegulatedMotor leftMotor,EV3LargeRegulatedMotor rightMotor) {
@@ -29,8 +30,10 @@ public class Odometer extends Thread {
 		this.theta = 0.0;
 		this.leftMotorTachoCount = 0;
 		this.rightMotorTachoCount = 0;
-		this.data = new double[2];
-		this.oldData = new double[2];
+		this.distance = 0.0;
+		this.angle = 0.0;
+		this.prevDistance = 0.0;
+		this.prevAngle = 0.0;
 		lock = new Object();
 	}
 
@@ -42,9 +45,7 @@ public class Odometer extends Thread {
 			updateStart = System.currentTimeMillis();
 			
 			//TODO put (some of) your odometer code here
-			this.getData(data);
-			data[0] -= oldData[0];
-			data[1] -= oldData[1];
+			this.updateData();
 			
 			synchronized (lock) {
 				/**
@@ -53,14 +54,12 @@ public class Odometer extends Thread {
 				 * Do not perform complex math
 				 * 
 				 */
-				theta += data[1];
+				theta += angle;
 				theta = Math.abs(theta);
 
-				x += data[0] * Math.cos(Math.toRadians(theta));
-				y += data[0] * Math.sin(Math.toRadians(theta));	
+				x += distance * Math.cos(Math.toRadians(theta));
+				y += distance * Math.sin(Math.toRadians(theta));	
 			}
-			oldData[0] += data[0];
-			oldData[1] += data[1];
 
 			// this ensures that the odometer only runs once every period
 			updateEnd = System.currentTimeMillis();
@@ -76,17 +75,19 @@ public class Odometer extends Thread {
 		}
 	}
 	
-	private void getData(double[] data) {
+	public void updateData() {
 		leftMotorTachoCount = leftMotor.getTachoCount();
 		rightMotorTachoCount = rightMotor.getTachoCount();
 		
-		//distance
-		data[0] = ( leftMotorTachoCount + rightMotorTachoCount)* WR * Math.PI/ 360;
-		//angle
-		data[1] = ( leftMotorTachoCount - rightMotorTachoCount) * WR / WB;
+		distance = ( leftMotorTachoCount + rightMotorTachoCount)* WR * Math.PI/ 360;
+		angle = ( leftMotorTachoCount - rightMotorTachoCount) * WR / WB;
+		
+		distance -= prevDistance;
+		angle -= prevAngle;
+		
+		prevDistance += distance;
+		prevAngle += angle;
 	}
-
-
 	// accessors
 	public void getPosition(double[] position, boolean[] update) {
 		// ensure that the values don't change while the odometer is running
