@@ -3,64 +3,86 @@
  */
 package ev3Odometer;
 
-import lejos.hardware.sensor.SensorModes;
+import java.util.Arrays;
+
+import lejos.hardware.Sound;
+import lejos.hardware.ev3.LocalEV3;
+import lejos.hardware.lcd.LCD;
+import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.robotics.SampleProvider;
 
 public class OdometryCorrection extends Thread {
-	private static final long CORRECTION_PERIOD = 10;
-	private Odometer odometer;
-	private SensorModes lightSensor;
 	
-	private double odometerX = 0;
-	private double odometerY = 0;
-	private int squaresX = 0;
-	private int squaresY = 0;
-	private double differenceX = 0;
-	private double differenceY = 0;
+	private static final long CORRECTION_PERIOD = 10;
+	private EV3ColorSensor sensor = new EV3ColorSensor(LocalEV3.get().getPort("S1"));
+	private SampleProvider sampleProvider;
+	private Odometer odometer;
+	
+	private int[] distances = { 14, 44, 74 }; // { 12, 42, 72 }
+	private int squaresLeft = 0;
+	private int squaresTop = 0;
+	private int squaresRight = 2;
+	private int squaresBot = 2;
+	private double theta = 0.0;
 
 	// constructor
 	public OdometryCorrection(Odometer odometer) {
 		this.odometer = odometer;
+		sensor.setFloodlight(true);
 	}
 
 	// run method (required for Thread)
 	public void run() {
 		long correctionStart, correctionEnd;
 		
-		//set light sensor to check reflected red light
-		SampleProvider sensor = lightSensor.getMode("Red");
+
 		//define int for size of data array based on sensor sample size
 		int dataSize = sensor.sampleSize();
-
+		Sound.setVolume(50);
+		
 		while (true) {
 			correctionStart = System.currentTimeMillis();
 
-			// put your correction code here
+			// TODO: put your correction code here
 			
+			sampleProvider=sensor.getRedMode();
 			//create array to store sensor data then retrieve data
 			float sensorData[] = new float[dataSize];
-			sensor.fetchSample(sensorData, 0);
 			
-			if(odometer.getTheta() < 1.5 && sensorData[0] < 0.2) {
-				squaresY += 1;
+			sampleProvider.fetchSample(sensorData, 0);
+			
+			LCD.drawString("Color: " + Arrays.toString(sensorData), 0, 3);
+			
+			if(sensorData[0] < .3 ) {
 				
-				if (squaresY == 1) {
-					odometerY = odometer.getY();
-					odometer.setY(15);
-					differenceY = 15 - odometerY;
-					
-				} else if (squaresY ==2) {
-					odometer.setY(45);
+				Sound.beep();
+				theta = odometer.getTheta();
+				
+				//left part of square
+				if(theta < 1.5) {
+					LCD.drawString("1", 0, 5);
+					odometer.setY(distances[squaresLeft]);
+					squaresLeft++;	
+				}	
+				//top part of square
+				else if ((theta >= 1.5 && theta < 3)) {
+					LCD.drawString("2", 0, 5);
+					odometer.setX(distances[squaresTop]);
+					squaresTop++;
 				}
-				break;
-			} else if ((odometer.getTheta() >= 1.5 && odometer.getTheta() < 3) && sensorData[0] < 0.2) {
-				
-			} else if ((odometer.getTheta() >= 3 && odometer.getTheta() < 4.5) && sensorData[0] < 0.2) {
-				
-			} else if ((odometer.getTheta() >= 4.5 && odometer.getTheta() < 6.2) && sensorData[0] < 0.2) {
-				
+				//right part of square
+				else if ((theta >= 3 && theta < 4.5)) {
+					LCD.drawString("3", 0, 5);
+					odometer.setY(distances[squaresRight]);
+					squaresRight--;
+				}	
+				//bottom part of square
+				else if ((theta >= 4.5 && theta < 6.2)) {
+					LCD.drawString("4" , 0, 5);
+					odometer.setX(distances[squaresBot]);
+					squaresBot--;
+				}
 			}
-			
 
 			// this ensure the odometry correction occurs only once every period
 			correctionEnd = System.currentTimeMillis();

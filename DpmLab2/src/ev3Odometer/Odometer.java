@@ -16,9 +16,8 @@ public class Odometer extends Thread {
 	// lock object for mutual exclusion
 	private Object lock;
 	
-	private double WR = 2.1;
-	private double WB = 10.05;
-	private double distance, angle;		//distance in cm, angle in deg
+	private double WR, WB;
+	private double distance, angle;		//distance in cm, angle in radians
 	private double prevDistance, prevAngle;
 	
 	// default constructor
@@ -34,6 +33,8 @@ public class Odometer extends Thread {
 		this.angle = 0.0;
 		this.prevDistance = 0.0;
 		this.prevAngle = 0.0;
+		WB = Lab2.WIDTH;
+		WR = Lab2.WHEEL_RADIUS;
 		lock = new Object();
 	}
 
@@ -54,12 +55,16 @@ public class Odometer extends Thread {
 				 * Do not perform complex math
 				 * 
 				 */
+				
+				//Set variables
 				theta += angle;
-				theta = Math.abs(theta);
+				if(theta < 0)
+					theta = Math.abs(theta);
 
-				x += distance * Math.cos(Math.toRadians(theta));
-				y += distance * Math.sin(Math.toRadians(theta));	
+				x += distance * Math.cos(theta);
+				y += distance * Math.sin(theta);	
 			}
+
 
 			// this ensures that the odometer only runs once every period
 			updateEnd = System.currentTimeMillis();
@@ -75,18 +80,22 @@ public class Odometer extends Thread {
 		}
 	}
 	
-	public void updateData() {
+	private void updateData() {
+		//get tachometer values
 		leftMotorTachoCount = leftMotor.getTachoCount();
 		rightMotorTachoCount = rightMotor.getTachoCount();
 		
-		distance = ( leftMotorTachoCount + rightMotorTachoCount)* WR * Math.PI/ 360;
-		angle = ( leftMotorTachoCount - rightMotorTachoCount) * WR / WB;
+		//calculate distance and heading
+		distance = WR * Math.PI / 360 * ( leftMotorTachoCount + rightMotorTachoCount);
+		angle = WR / WB * Math.PI / 180 * ( leftMotorTachoCount - rightMotorTachoCount);
 		
 		distance -= prevDistance;
 		angle -= prevAngle;
 		
+		//update previous values
 		prevDistance += distance;
 		prevAngle += angle;
+
 	}
 	// accessors
 	public void getPosition(double[] position, boolean[] update) {
