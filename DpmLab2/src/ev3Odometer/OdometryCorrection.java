@@ -13,6 +13,10 @@ public class OdometryCorrection extends Thread {
 	
 	private double odometerX = 0;
 	private double odometerY = 0;
+	private int squaresX = 0;
+	private int squaresY = 0;
+	private double differenceX = 0;
+	private double differenceY = 0;
 
 	// constructor
 	public OdometryCorrection(Odometer odometer) {
@@ -23,21 +27,37 @@ public class OdometryCorrection extends Thread {
 	public void run() {
 		long correctionStart, correctionEnd;
 		
+		//set light sensor to check reflected red light
 		SampleProvider sensor = lightSensor.getMode("Red");
+		//define int for size of data array based on sensor sample size
 		int dataSize = sensor.sampleSize();
 
 		while (true) {
 			correctionStart = System.currentTimeMillis();
 
 			// put your correction code here
+			
+			//create array to store sensor data then retrieve data
 			float sensorData[] = new float[dataSize];
 			sensor.fetchSample(sensorData, 0);
 			
 			if(odometer.getTheta() < 1.5 && sensorData[0] < 0.2) {
+				squaresY += 1;
 				
+				if (squaresY == 1) {
+					odometerY = odometer.getY();
+					odometer.setY(15);
+					differenceY = 15 - odometerY;
+					
+				} else if (squaresY ==2) {
+					odometer.setY(45);
+				}
+				break;
 			} else if ((odometer.getTheta() >= 1.5 && odometer.getTheta() < 3) && sensorData[0] < 0.2) {
 				
-			} else if ((odometer.getTheta() >= 3 && odometer.getTheta() < 6.2) && sensorData[0] < 0.2) {
+			} else if ((odometer.getTheta() >= 3 && odometer.getTheta() < 4.5) && sensorData[0] < 0.2) {
+				
+			} else if ((odometer.getTheta() >= 4.5 && odometer.getTheta() < 6.2) && sensorData[0] < 0.2) {
 				
 			}
 			
