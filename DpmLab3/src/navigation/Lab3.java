@@ -47,9 +47,10 @@ public class Lab3{
 				&& buttonChoice != Button.ID_RIGHT);
 
 		if (buttonChoice == Button.ID_LEFT) {
-			
+			LCD.drawString("Hi", 0 , 6 );
 			odometer.start();
 			odometryDisplay.start();
+						
 			
 			//TODO: write code for second part
 		}

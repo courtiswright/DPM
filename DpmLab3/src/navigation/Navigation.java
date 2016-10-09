@@ -1,5 +1,6 @@
 package navigation;
 
+import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Navigation extends Thread{
@@ -30,8 +31,8 @@ public class Navigation extends Thread{
 		}
 		
 		public void travelTo(double xPos, double yPos){
-			this.xPos = xPos;
-			this.yPos = yPos;
+//			this.xPos = xPos;
+//			this.yPos = yPos;
 			
 		/*
 		 	synchronized (odometer.lock) {
@@ -40,25 +41,33 @@ public class Navigation extends Thread{
 				yR = odometer.getY();
 			}
 		*/	
+			navigating = true;
+			
 			turnTo(calcAngle(xPos,yPos));
 			travelForward(calcDistance(xPos,yPos));
+			
+			navigating = false;
 		}
 		
 		public void turnTo(double thetaD) {
 			
 			double angle = thetaD - odometer.getTheta();
 			
-			if (angle > 180)
+			if (angle > 180) {
 				angle = angle - 360;
-			if (angle < -180)
+			}
+			if (angle < -180) {
 				angle = angle + 360;
+			}
+			
+			LCD.drawString("Angle: " + angle, 0 ,7);
 			
 			leftMotor.setSpeed(ROTATE_SPEED);
 			rightMotor.setSpeed(ROTATE_SPEED);
 			
 			navigating = true;
-			leftMotor.rotate(convertAngle(leftRadius, WIDTH, 90.0), true);
-			rightMotor.rotate(-convertAngle(rightRadius, WIDTH, 90.0), false);
+			leftMotor.rotate(convertAngle(leftRadius, WIDTH, angle), true);
+			rightMotor.rotate(-convertAngle(rightRadius, WIDTH, angle), false);
 			navigating = false;
 		}
 		
@@ -87,6 +96,7 @@ public class Navigation extends Thread{
 		public boolean isNavigating() {
 			return navigating;
 		}
+		
 		public double getX(){
 			double result = xPos;
 			return result;
@@ -106,31 +116,35 @@ public class Navigation extends Thread{
 			double dY = yPos - odometer.getY();
 			return Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
 		}
+		
 		private double calcAngle(double xPos, double yPos) {
-			theta = 0.0;
+//			theta = 0.0;
+			double angle = 0.0;
 			double dX = xPos - odometer.getX();
 			double dY = yPos - odometer.getY();
 			
-			//tan^-1 of 0 is 0			
-			if (dX == 0 && dY < 0) 
-				theta = Math.PI;
-			if (dX == 0 && dY > 0)
-				theta = 0;
-			
-			//can't divide by 0
-			if (dY == 0 && dX < 0)
-				theta = -(Math.PI/2);
-			if (dY == 0 && dX > 0)
-				theta = Math.PI;
-			
-			
-			theta = Math.atan(dY/dX);
-			if (dX < 0 && dY < 0) 
-				theta = theta + Math.PI;
-			else if (dX > 0 && dY < 0)
-				theta = theta + Math.PI;
+//			//tan^-1 of 0 is 0			
+//			if (dX == 0 && dY < 0) 
+//				theta = Math.PI;
+//			if (dX == 0 && dY > 0)
+//				theta = 0;
+//			
+//			//can't divide by 0
+//			if (dY == 0 && dX < 0)
+//				theta = -(Math.PI/2);
+//			if (dY == 0 && dX > 0)
+//				theta = Math.PI;
+//			
+//			
+//			theta = Math.atan(dY/dX);
+//			if (dX < 0 && dY < 0) 
+//				theta = theta + Math.PI;
+//			else if (dX > 0 && dY < 0)
+//				theta = theta + Math.PI;
 				
-			return theta;
+			angle = Math.toDegrees(Math.atan2(dY, dX));
+			
+			return angle;
 		}
 
 
