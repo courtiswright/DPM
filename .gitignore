@@ -1,5 +1,8 @@
+.recommenders/
 
-.metadata
+.metadata/
+
+.metadata/*
 
 .metadata/.log
 
