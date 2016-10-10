@@ -18,7 +18,7 @@ public class Lab3{
 
 	// Constants
 	public static final double LEFT_RADIUS = 2.1;
-	public static final double RIGHT_RADIUS = 2.1;
+	public static final double RIGHT_RADIUS = 2.12;
 	public static final double WHEEL_RADIUS = 2.1;
 	public static final double WIDTH = 15.2;
 	
@@ -47,10 +47,9 @@ public class Lab3{
 				&& buttonChoice != Button.ID_RIGHT);
 
 		if (buttonChoice == Button.ID_LEFT) {
-			LCD.drawString("Hi", 0 , 6 );
+			
 			odometer.start();
 			odometryDisplay.start();
-						
 			
 			//TODO: write code for second part
 		}

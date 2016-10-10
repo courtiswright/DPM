@@ -15,7 +15,8 @@ public class Odometer extends Thread {
 	public Object lock;					// lock object for mutual exclusion
 	private double distance, angle;		//distance in cm, angle in radians
 	private double prevDistance, prevAngle;
-	private double WB, WR;
+	private double WB = Lab3.WIDTH;
+	private double WR = Lab3.WHEEL_RADIUS;
 	
 	// default constructor
 	public Odometer(EV3LargeRegulatedMotor leftMotor,EV3LargeRegulatedMotor rightMotor) {
@@ -30,8 +31,6 @@ public class Odometer extends Thread {
 		this.angle = 0.0;
 		this.prevDistance = 0.0;
 		this.prevAngle = 0.0;
-		WB = Lab3.WIDTH;
-		WR = Lab3.WHEEL_RADIUS;
 		lock = new Object();
 	}
 
@@ -55,11 +54,12 @@ public class Odometer extends Thread {
 				
 				//Set variables
 				theta += angle;
-				if(theta < 0)
-					theta = Math.abs(theta);
-
-				x += distance * Math.cos(theta);
-				y += distance * Math.sin(theta);	
+				//make sure angle is not negative
+				/*if(theta < 0.0) {
+					theta = 2*Math.PI + theta;
+				}*/	
+				x += distance * Math.sin(theta);
+				y += distance * Math.cos(theta);	
 			}
 
 
@@ -84,7 +84,7 @@ public class Odometer extends Thread {
 		
 		//calculate distance and heading
 		distance = WR * Math.PI / 360 * ( leftMotorTachoCount + rightMotorTachoCount);
-		angle = WR / WB * Math.PI / 180 * ( leftMotorTachoCount - rightMotorTachoCount);
+		angle = WR / WB * Math.PI / 180 * (  leftMotorTachoCount - rightMotorTachoCount  );
 		
 		distance -= prevDistance;
 		angle -= prevAngle;
@@ -103,7 +103,7 @@ public class Odometer extends Thread {
 			if (update[1])
 				position[1] = y;
 			if (update[2])
-				position[2] = theta;
+				position[2] = theta * 180/Math.PI;
 		}
 	}
 
@@ -126,15 +126,15 @@ public class Odometer extends Thread {
 
 		return result;
 	}
-
+	//returns theta in radians
 	public double getTheta() {
 		double result;
 
 		synchronized (lock) {
 			result = theta;
 		}
-
-		return result * 180 / Math.PI;
+		
+		return result;
 	}
 
 	// mutators

@@ -32,25 +32,26 @@ public class OdometryDisplay extends Thread {
 			displayStart = System.currentTimeMillis();
 
 			// clear the lines for displaying odometry information
-			t.drawString("Xr:              ", 0, 0);
-			t.drawString("Yr:              ", 0, 1);
-			t.drawString("Tr:              ", 0, 2);
-
-			t.drawString("Xd:              ", 0, 4);
-			t.drawString("Yd:              ", 0, 5);
-			t.drawString("T:              ", 0, 6);
+			t.drawString("Current position", 0, 0);
+			t.drawString("Xr:              ", 0, 1);
+			t.drawString("Yr:              ", 0, 2);
+			t.drawString("Tr:              ", 0, 3);
+			t.drawString("Next position", 0, 4);
+			t.drawString("Xd:              ", 0, 5);
+			t.drawString("Yd:              ", 0, 6);
+			t.drawString("T:              ", 0, 7);
 			// get the odometry information
 			
 			odometer.getPosition(position, new boolean[] { true, true, true });
 
 			// display odometry information
 			for (int i = 0; i < 3; i++) {
-				t.drawString(formattedDoubleToString(position[i], 2), 3, i);
+				t.drawString(formattedDoubleToString(position[i], 2), 3, i+1);
 			}
 			//display navigation information
-			LCD.drawString(formattedDoubleToString(navigator.getX(), 2), 3, 4);
-			LCD.drawString(formattedDoubleToString(navigator.getY(), 2), 3, 5);
-			LCD.drawString(formattedDoubleToString(navigator.getTheta(), 2), 3, 6);
+			LCD.drawString(formattedDoubleToString(navigator.getX(), 2), 3, 5);
+			LCD.drawString(formattedDoubleToString(navigator.getY(), 2), 3, 6);
+			LCD.drawString(formattedDoubleToString(navigator.getTheta(), 2), 3, 7);
 			// throttle the OdometryDisplay
 			displayEnd = System.currentTimeMillis();
 			if (displayEnd - displayStart < DISPLAY_PERIOD) {
