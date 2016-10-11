@@ -1,8 +1,9 @@
 package navigation;
+import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.*;
 
 public class BangBangController implements UltrasonicController{
-	private final int bandCenter = 40;
+	private final int bandCenter = 30;
 	private final int bandwidth = 2;
 	private final int FILTER_OUT = 30;
 	private final int motorLow, motorHigh;
@@ -19,6 +20,7 @@ public class BangBangController implements UltrasonicController{
 //	private double endX;
 //	private double endY;
 	private Navigation navigator1;
+	private int counter = 0;
 
 	//edited constructor that now accepts odometer and navigation inputs
 	//this is called from the Lab3 class to check if the sensor is closer than the band Center
@@ -48,6 +50,8 @@ public class BangBangController implements UltrasonicController{
 		//as the robot tries to avoid the block
 		if (distance <= bandCenter) {
 			avoid = true;
+			System.out.println("Distance: " + distance);
+//			System.out.println("Avoid");
 			Xstart = odometer.getX();
 			Ystart = odometer.getY();
 			Tstart = odometer.getTheta();
@@ -77,7 +81,7 @@ public class BangBangController implements UltrasonicController{
 					leftMotor.forward();
 					rightMotor.forward();
 			
-				} else if (odometer.getTheta() == OGtheta + (Math.PI/2)) {
+				} else if (odometer.getTheta() <= OGtheta + (Math.PI/2) + 5 && odometer.getTheta() <= OGtheta + (Math.PI/2) - 5) {
 					
 //					endX = odometer.getX();
 //					endY = odometer.getY();

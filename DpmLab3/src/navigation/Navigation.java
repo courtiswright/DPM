@@ -66,11 +66,11 @@ public class Navigation extends Thread{
 			//this ensures the smallest angle possible is turned
 			if (theta > Math.PI) {
 				theta = theta - 2*Math.PI;
-				LCD.drawString("T>180", 10, 2);
+//				LCD.drawString("T>180", 10, 2);
 			}
 			else if (theta < -(Math.PI) ) { 
 				theta = theta + 2*Math.PI;
-				LCD.drawString("T<-180", 10, 2);
+//				LCD.drawString("T<-180", 10, 2);
 			}
 			
 			//calls turnTo method to physically turn to desired angle
@@ -166,37 +166,37 @@ public class Navigation extends Thread{
 			//tan^-1 of 0 is 0 
 			if (deltX == 0 && deltY > 0) {
 				theta = 0;
-				LCD.drawString("IN1", 10, 2);
+//				LCD.drawString("IN1", 10, 2);
 			}
 			else if (deltX == 0 && deltY > 0){
 				theta = Math.PI;
-				LCD.drawString("IN2", 10, 2);
+//				LCD.drawString("IN2", 10, 2);
 			}
 			//can't divide by 0
 			else if (deltY == 0 && deltX > 0) {
 				theta = Math.PI/2;
-				LCD.drawString("IN3", 10, 2);
+//				LCD.drawString("IN3", 10, 2);
 			}
 			else if (deltY == 0 && deltX < 0) {
 				theta = - Math.PI/2;
-				LCD.drawString("IN4", 10, 2);
+//				LCD.drawString("IN4", 10, 2);
 			}	
 			
 			//if none of the special conditions are met, calculates angle using arctan
 			//we know tan = opposite/adjacent so set calculate using distance of each side of triangle
 			else {
-				LCD.drawString("ELSE", 10, 2);
+//				LCD.drawString("ELSE", 10, 2);
 				
 				theta = Math.atan(deltaX/deltaY);				
 			
 				//checks special conditions 
 				if (deltaX < 0 && deltaY < 0)  { 
 					theta = theta + Math.PI;
-					LCD.drawString("IN5", 10, 2);
+//					LCD.drawString("IN5", 10, 2);
 				}
 				else if (deltaX > 0 && deltaY < 0) {
 					theta = theta + Math.PI;
-					LCD.drawString("IN6", 10, 2);
+//					LCD.drawString("IN6", 10, 2);
 				}				
 			}
 			return theta;

@@ -70,27 +70,30 @@ public class Lab3{
 			
 			//start odometer, display, and sensor
 			odometer.start();
-			odometryDisplay.start();
+//			odometryDisplay.start();
 			usPoller.start();
+//			navigator.start();
+			navigator.travelTo(0, 60);
+			navigator.travelTo(60, 0);
 			
 			//create thread to run second demo
-			(new Thread() {
-				public void run() {
-					//instantiated everything again - short fix
-					final TextLCD t = LocalEV3.get().getTextLCD();
-					Odometer odometer = new Odometer(leftMotor, rightMotor);
-					Navigation navigator = new Navigation(odometer, leftMotor, rightMotor, WIDTH, LEFT_RADIUS, RIGHT_RADIUS);
-					OdometryDisplay odometryDisplay = new OdometryDisplay(odometer, navigator, t);
-										
-					odometer.start();
-					odometryDisplay.start();
-					navigator.start();
-					
-					//calls travelTo method in Navigation class, which then uses BangBang
-					navigator.travelTo(0, 60);
-					navigator.travelTo(60, 0);
-				}
-			}).start();
+//			(new Thread() {
+//				public void run() {
+//					//instantiated everything again - short fix
+//					final TextLCD t = LocalEV3.get().getTextLCD();
+//					Odometer odometer = new Odometer(leftMotor, rightMotor);
+//					Navigation navigator = new Navigation(odometer, leftMotor, rightMotor, WIDTH, LEFT_RADIUS, RIGHT_RADIUS);
+//					OdometryDisplay odometryDisplay = new OdometryDisplay(odometer, navigator, t);
+//										
+//					odometer.start();
+//					odometryDisplay.start();
+//					navigator.start();
+//					
+//					//calls travelTo method in Navigation class, which then uses BangBang
+//					navigator.travelTo(0, 60);
+//					navigator.travelTo(60, 0);
+//				}
+//			}).start();
 			
 			
 			//TODO: write code for second part
