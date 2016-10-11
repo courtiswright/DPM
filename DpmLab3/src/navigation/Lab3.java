@@ -70,12 +70,14 @@ public class Lab3{
 			
 			//start odometer, display, and sensor
 			odometer.start();
-//			odometryDisplay.start();
+			odometryDisplay.start();
 			usPoller.start();
-//			navigator.start();
+//			navigator.start();			//not actually a thread so nothing to start
 			navigator.travelTo(0, 60);
 			navigator.travelTo(60, 0);
 			
+//THIS DOES NOT WORK BECAUSE IT CREATES A TON OF INTERFERENCE FOR PART 2
+//IT IS ESSENTIALLY A CHEAT INSTEAD OF CREATING A THREAD IN THE CLASS ITSELF
 			//create thread to run second demo
 //			(new Thread() {
 //				public void run() {
