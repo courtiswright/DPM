@@ -1,14 +1,13 @@
 package navigation;
 
-import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Navigation extends Thread{
 	
 		private Odometer odometer;
 		private EV3LargeRegulatedMotor leftMotor, rightMotor;
-		boolean navigating = false;
-		
+		boolean navigating;
+		private static final long NAVIGATOR_PERIOD = 25;
 		//CONSTANTS
 		private int FORWARD_SPEED = 200; 	//(250) in squareDriver
 		private int ROTATE_SPEED = 100; 	//(150) in squareDriver
@@ -30,29 +29,41 @@ public class Navigation extends Thread{
 			rightMotor.setAcceleration(4000);
 			navigating = false;
 		}
+		public void run() {
+			long updateStart, updateEnd;
+			while (true) {
+				updateStart = System.currentTimeMillis();
+				//gets the position that the robot is currently at
+				//synchronized to avoid collision
+			 	synchronized (odometer.lock) {
+					thetaR = odometer.getTheta();
+					xR = odometer.getX();
+					yR = odometer.getY();
+				}
+				// this ensures that the navigator only runs once every period
+				updateEnd = System.currentTimeMillis();
+				if (updateEnd - updateStart < NAVIGATOR_PERIOD) {
+					try {
+						Thread.sleep(NAVIGATOR_PERIOD - (updateEnd - updateStart));
+					} catch (InterruptedException e) {}
+				}
+			}
+			
+		}
 		
 		//moves the robot from its current position to the desired position
 		public void travelTo(double xPos, double yPos){
 			
-			//gets the position that the robot is currently at
+			//Set variables
 			this.xPos = xPos;
 			this.yPos = yPos;
 		
-			
-		 	synchronized (odometer.lock) {
-				thetaR = odometer.getTheta();
-				xR = odometer.getX();
-				yR = odometer.getY();
-			}
-		 	
-		 	
 		 	double thetaD, distance;
 			double dX = xPos - xR;
 			double dY = yPos - yR;
 			
 			//calls method to calculate angle to be at before moving forward
 			thetaD = calcAngle(dX,dY);
-			//thetaD = Math.atan(dX/dY);	
 			
 			//angle robot needs to turn is difference between angle it
 			//should be at and angle it is currently at
@@ -66,20 +77,16 @@ public class Navigation extends Thread{
 			//this ensures the smallest angle possible is turned
 			if (theta > Math.PI) {
 				theta = theta - 2*Math.PI;
-//				LCD.drawString("T>180", 10, 2);
 			}
 			else if (theta < -(Math.PI) ) { 
 				theta = theta + 2*Math.PI;
-//				LCD.drawString("T<-180", 10, 2);
 			}
-			
+
 			//calls turnTo method to physically turn to desired angle
 			turnTo(theta);
 			
 			//once orientation is proper, moves the desired amount forward
-			travelForward(distance);
-			//turnTo(-theta);
-		
+			travelForward(distance);	
 			navigating = false;
 		}	
 		
@@ -172,6 +179,7 @@ public class Navigation extends Thread{
 				theta = Math.PI;
 //				LCD.drawString("IN2", 10, 2);
 			}
+			
 			//can't divide by 0
 			else if (deltY == 0 && deltX > 0) {
 				theta = Math.PI/2;
@@ -184,9 +192,7 @@ public class Navigation extends Thread{
 			
 			//if none of the special conditions are met, calculates angle using arctan
 			//we know tan = opposite/adjacent so set calculate using distance of each side of triangle
-			else {
-//				LCD.drawString("ELSE", 10, 2);
-				
+			else {			
 				theta = Math.atan(deltaX/deltaY);				
 			
 				//checks special conditions 
@@ -201,6 +207,7 @@ public class Navigation extends Thread{
 			}
 			return theta;
 		}
+		
 		//Methods from square driver
 		private static int convertDistance(double radius, double distance) {
 			return (int) ((180.0 * distance) / (Math.PI * radius));

@@ -28,7 +28,7 @@ public class UltrasonicPoller extends Thread{
 	
 	public void run() {
 		int distance;
-		while (true) {
+		while (BangBangController.isAvoiding()) {
 			us.fetchSample(usData,0);							// acquire data
 			distance=(int)(usData[0]*100.0);					// extract from buffer, cast to int
 			cont.processUSData(distance);						// now take action depending on value

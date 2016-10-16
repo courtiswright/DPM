@@ -1,4 +1,5 @@
 // Lab3.java
+// Lab3.java
 package navigation;
 
 import lejos.hardware.Button;
@@ -33,6 +34,7 @@ public class Lab3{
 	public static void main(String [] args){
 		int buttonChoice;
 		
+		@SuppressWarnings("resource")
 		SensorModes usSensor = new EV3UltrasonicSensor(usPort);
 		SampleProvider usDistance = usSensor.getMode("Distance");
 		float[] usData = new float[usDistance.sampleSize()];
@@ -68,60 +70,25 @@ public class Lab3{
 					 odometer, navigator, motorLow, motorHigh);
 			UltrasonicPoller usPoller = new UltrasonicPoller(usDistance, usData, bangbang);
 			
-			//start odometer, display, and sensor
+			//start odometer, display, navigator and sensor
 			odometer.start();
 			odometryDisplay.start();
 			usPoller.start();
-//			navigator.start();			//not actually a thread so nothing to start
+			navigator.start();
 			navigator.travelTo(0, 60);
 			navigator.travelTo(60, 0);
-			
-//THIS DOES NOT WORK BECAUSE IT CREATES A TON OF INTERFERENCE FOR PART 2
-//IT IS ESSENTIALLY A CHEAT INSTEAD OF CREATING A THREAD IN THE CLASS ITSELF
-			//create thread to run second demo
-//			(new Thread() {
-//				public void run() {
-//					//instantiated everything again - short fix
-//					final TextLCD t = LocalEV3.get().getTextLCD();
-//					Odometer odometer = new Odometer(leftMotor, rightMotor);
-//					Navigation navigator = new Navigation(odometer, leftMotor, rightMotor, WIDTH, LEFT_RADIUS, RIGHT_RADIUS);
-//					OdometryDisplay odometryDisplay = new OdometryDisplay(odometer, navigator, t);
-//										
-//					odometer.start();
-//					odometryDisplay.start();
-//					navigator.start();
-//					
-//					//calls travelTo method in Navigation class, which then uses BangBang
-//					navigator.travelTo(0, 60);
-//					navigator.travelTo(60, 0);
-//				}
-//			}).start();
-			
-			
-			//TODO: write code for second part
 		}
-		else {			
-			//have to put in thread so you can exit program early
-			(new Thread() {
-				public void run() {
-					//instantiated everything again - short fix
-					final TextLCD t = LocalEV3.get().getTextLCD();
-					Odometer odometer = new Odometer(leftMotor, rightMotor);
-					Navigation navigator = new Navigation(odometer, leftMotor, rightMotor, WIDTH, LEFT_RADIUS, RIGHT_RADIUS);
-					OdometryDisplay odometryDisplay = new OdometryDisplay(odometer, navigator, t);
-					
-					odometer.start();
-					odometryDisplay.start();
-					navigator.start();
-					
-					//calls travelTo method in Navigation class to move to each of the points
-					navigator.travelTo(60, 30);
-					navigator.travelTo(30, 30);
-					navigator.travelTo(30, 60);
-					navigator.travelTo(60, 0);
-				}
-			}).start();
-
+		//Button choice equals RIGHT
+		else {	
+			odometer.start();
+			odometryDisplay.start();
+			navigator.start();
+			
+			//calls travelTo method in Navigation class to move to each of the points
+			navigator.travelTo(60, 30);
+			navigator.travelTo(30, 30);
+			navigator.travelTo(30, 60);
+			navigator.travelTo(60, 0);
 		}
 
 		while (Button.waitForAnyPress() != Button.ID_ESCAPE);

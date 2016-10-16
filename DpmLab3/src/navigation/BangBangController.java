@@ -14,14 +14,12 @@ public class BangBangController implements UltrasonicController{
 	static double Xstart = 0;
 	static double Ystart = 0;
 	static double Tstart = 0;
-	private static Odometer odometer;
+	private Odometer odometer;
 	private boolean firstAdjust = true;			//checks if this is the original encounter of the block
 	private static double OGtheta = 0.0;		//stores angle robot is traveling at before it avoids the block
-//	private double endX;						//didn't seem to be useful after all
-//	private double endY;						//didn't seem to be useful after all
 	private Navigation navigation;
-//	private int counter = 0;					//don't think we need this after all
-	
+	private static Boolean Avoiding = true;
+
 	/*edited constructor that now accepts odometer and navigation inputs
 	this is called from the Lab3 class to check if the sensor is closer than the band Center */
 	public BangBangController(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor,
@@ -51,8 +49,6 @@ public class BangBangController implements UltrasonicController{
 		 */
 		if (distance <= bandCenter) {
 			avoid = true;
-//			System.out.println("Distance: " + distance);	//check to see if sensor is reading properly
-//			System.out.println("Avoid");			//check to see when this loop is entered
 			Xstart = odometer.getX();
 			Ystart = odometer.getY();
 			Tstart = odometer.getTheta();
@@ -63,7 +59,15 @@ public class BangBangController implements UltrasonicController{
 		 * and (tries to) kick out when the robot fully passes the block
 		 */
 		if (avoid) {
+			double thetaEnd  = (OGtheta + 3*Math.PI/2) % (2*Math.PI);
 			
+			//TEST
+				int degOG = (int)(OGtheta * 180/Math.PI);
+				int ED = (int)(thetaEnd * 180/Math.PI);
+				LCD.drawString("OG: " + degOG, 10, 3);
+				LCD.drawString("ED: " + ED, 10, 5);
+			//END TEST	
+				
 				// rudimentary filter - toss out invalid samples corresponding to null signal.		
 				if (distance >= 255 && filterControl < FILTER_OUT) {
 					// bad value, do not set the distance var, however do increment the filter value
@@ -93,13 +97,8 @@ public class BangBangController implements UltrasonicController{
 				 * point, the moveTo method in navigate will (hopefully) be called to
 				 * move the robot from its current position to its original destination
 				 */
-				//THIS IS POSSIBLY THE PROBLEM (explained above)
-				//**********************************************************************************************************************
-				else if (odometer.getTheta() <= OGtheta - (Math.PI/2) + 5 && odometer.getTheta() <= OGtheta - (Math.PI/2) - 5) {	//**
-				//**********************************************************************************************************************
-
-//					endX = odometer.getX();		//didn't seem to need after all	
-//					endY = odometer.getY();		//didn't seem to need after all
+				
+				else if (odometer.getTheta() <= ( thetaEnd + Math.PI/36)  && odometer.getTheta() >= (  thetaEnd - Math.PI/36)  ) {	
 					
 					/* if the original angle at which the robot was traveling is zero
 					 * taking into account error, send the robot from where it is after
@@ -108,9 +107,13 @@ public class BangBangController implements UltrasonicController{
 					 * send it to the second point, (0,60).
 					 */
 					if (Math.toDegrees(OGtheta) > -5 && Math.toDegrees(OGtheta) < 5){
-						navigation.travelTo(60,0);
-					} else {
+						LCD.drawString("INSIDE1", 10, 2);
 						navigation.travelTo(0, 60);
+						Avoiding = false;
+					} else {
+						LCD.drawString("INSIDE2", 10, 2);
+						navigation.travelTo(60, 0);
+						Avoiding = false;
 					}
 				} 
 				
@@ -119,15 +122,18 @@ public class BangBangController implements UltrasonicController{
 					//keeps the robot a bit closer to the block so it goes around properly
 					if (distance < bandCenter-5) {
 						
-						//THIS IS POSSIBLY THE PROBLEM
-						//*******************************************		hypothetically, this should check to see if this is
-						if (firstAdjust) {						//***		the original encounter of the block using boolean 
-							OGtheta = odometer.getTheta();		//***		"firstAdjust". If it is, it sets "OGtheta" to the
-							firstAdjust = false;				//***		angle the robot is currently traveling at and sets
-						}										//***		the boolean to false so that "OGtheta" is never
-						//*******************************************		reset.
+						/* Checks to see if this is the original encounter of the block using boolean
+						 * "firstAdjust". If it is, it sets "OGtheta" to the
+						 * angle the robot is currently traveling at and sets
+						 * the boolean to false so that "OGtheta" is never reset.
+						 */				
+						if (firstAdjust) {	
+							LCD.drawString("INSIDE", 10, 2);		 
+							OGtheta = odometer.getTheta();			
+							firstAdjust = false;					
+						}	
 						
-						//same as Lab1, turns robot to the right to avoid the block
+						//same as Lab1, turns robot to the left to avoid the block
 						leftMotor.setSpeed(motorHigh);
 						rightMotor.setSpeed(0);
 				
@@ -159,5 +165,8 @@ public class BangBangController implements UltrasonicController{
 	@Override
 	public int readUSDistance() {
 		return this.distance;
+	}
+	public static boolean isAvoiding() {
+		return Avoiding;
 	}
 }
