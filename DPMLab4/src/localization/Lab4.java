@@ -18,7 +18,9 @@ public class Lab4 {
 	private static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
 	private static final Port usPort = LocalEV3.get().getPort("S1");		
 	private static final Port colorPort = LocalEV3.get().getPort("S2");		
-
+	public static final double LEFT_RADIUS = 2.1;
+	public static final double RIGHT_RADIUS = 2.12;		//accounts for variance in motor strengths
+	public static final double WIDTH = 15.2;
 	
 	public static void main(String[] args) {
 		
@@ -44,9 +46,12 @@ public class Lab4 {
 		// setup the odometer and display
 		Odometer odo = new Odometer(leftMotor, rightMotor, 30, true);
 		LCDInfo lcd = new LCDInfo(odo);
+		Odometer odometer = new Odometer(leftMotor, rightMotor, 30, true);
+		Navigation navigator = new Navigation(odometer);
 		
 		// perform the ultrasonic localization
-		USLocalizer usl = new USLocalizer(odo, usValue, usData, USLocalizer.LocalizationType.FALLING_EDGE);
+		USLocalizer usl = new USLocalizer(odo, usValue, usData, USLocalizer.LocalizationType.FALLING_EDGE, 
+				leftMotor, rightMotor, navigator);
 		usl.doLocalization();
 		
 		// perform the light sensor localization
