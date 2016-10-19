@@ -1,7 +1,3 @@
-/* Group 2
- * Nareg Torikian:	260633071
- * Tamim Sujat:		260551583
- */
 package localization;
 
 import lejos.hardware.Sound;
@@ -17,10 +13,8 @@ public class USLocalizer {
 	private float[] usData;
 	private LocalizationType locType;
 	private EV3LargeRegulatedMotor leftMotor, rightMotor;
-	
-	//private SortedSet<Float> data = new TreeSet<>();
-	float[] data = new float[5];
-	
+	private int threshDist = 25;
+		
 	
 	public USLocalizer(Odometer odo,  SampleProvider usSensor, float[] usData, LocalizationType locType,
 			EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor, Navigation navigation) {
@@ -45,7 +39,7 @@ public class USLocalizer {
 			/* if the robot starts facing a wall, turn it 180 degrees so it has passed
 			 * the appointed threshold distance of 35cm, then start rising edge procedure
 			 */
-			if (getFilteredData() <= 35) {
+			if (getFilteredData() <= threshDist) {
 				leftMotor.rotate(convertAngle(Lab4.WHEEL_RADIUS, Lab4.WIDTH, 180), true);
 				rightMotor.rotate(-convertAngle(Lab4.WHEEL_RADIUS, Lab4.WIDTH, 180), false);
 			
@@ -61,7 +55,7 @@ public class USLocalizer {
 			 * continue the procedure
 			 */
 			while (true) {
-				if(getFilteredData() <= 35){
+				if(getFilteredData() <= threshDist){
 					Sound.beep();
 					leftMotor.stop();
 					rightMotor.stop();
@@ -86,7 +80,7 @@ public class USLocalizer {
 			 * the second angle used for angular positioning
 			 */
 			while (true){
-				if(getFilteredData() <= 35){
+				if(getFilteredData() <= threshDist){
 					Sound.beep();
 					leftMotor.stop();
 					rightMotor.stop();
@@ -105,7 +99,7 @@ public class USLocalizer {
 			
 			odo.setPosition(new double [] {0.0, 0.0, angleB + angleAvg}, new boolean []{true, true, true});
 			
-			//turn robot to face along the X-axis
+			//turn robot to face along the Y-axis
 			navigation.turnTo(0, true);
 			
 		} 
@@ -124,13 +118,13 @@ public class USLocalizer {
 			/* if the robot starts facing a wall, turn it until it has passed
 			 * the appointed threshold distance of 35cm, then start falling edge procedure
 			 */			
-			if(getFilteredData() >= 50){
+			if(getFilteredData() >= threshDist){
 				//turn the robot clockwise
 				leftMotor.forward();
 				rightMotor.backward();
 				
 				while (true){
-					if(getFilteredData() <= 35){
+					if(getFilteredData() <= threshDist){
 						leftMotor.stop();
 						rightMotor.stop();
 						break;
@@ -154,7 +148,7 @@ public class USLocalizer {
 			 * angular positioning
 			 */
 			while (true){
-				if(getFilteredData() > 35){
+				if(getFilteredData() > threshDist){
 					Sound.beep();
 					leftMotor.stop();
 					rightMotor.stop();
@@ -180,7 +174,7 @@ public class USLocalizer {
 			 * angular positioning
 			 */			
 			while (true){
-				if(getFilteredData() > 35){
+				if(getFilteredData() > threshDist){
 					Sound.beep();
 					rightMotor.stop();
 					leftMotor.stop();

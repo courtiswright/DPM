@@ -1,9 +1,3 @@
-/* Group 2
- * Nareg Torikian:	260633071
- * Tamim Sujat:		260551583
- * 
- * Odometer and Navigation classes are the same ones that were provided with the assignment
- */
 package localization;
 
 import lejos.hardware.*;
