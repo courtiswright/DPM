@@ -9,15 +9,17 @@ public class LCDInfo implements TimerListener{
 	public static final int LCD_REFRESH = 100;
 	private Odometer odo;
 	private Timer lcdTimer;
-	private TextLCD LCD = LocalEV3.get().getTextLCD();;
+	private TextLCD LCD;
+	private USLocalizer usLocalizer;
 	
 	// arrays for displaying data
 	private double [] pos;
 	
-	public LCDInfo(Odometer odo) {
+	public LCDInfo(Odometer odo, TextLCD LCD, USLocalizer usLocalizer) {
 		this.odo = odo;
 		this.lcdTimer = new Timer(LCD_REFRESH, this);
-		
+		this.LCD = LCD;
+		this.usLocalizer = usLocalizer;
 		// initialise the arrays for displaying data
 		pos = new double [3];
 		
@@ -34,5 +36,9 @@ public class LCDInfo implements TimerListener{
 		LCD.drawInt((int)(pos[0] * 10), 3, 0);
 		LCD.drawInt((int)(pos[1] * 10), 3, 1);
 		LCD.drawInt((int)pos[2], 3, 2);
+		LCD.drawString("S: ", 0, 3);
+		
+		//Display the value detected by the sensor, convert the meters to cm.
+		LCD.drawString("" + usLocalizer.getFilteredData(), 3, 3);
 	}
 }

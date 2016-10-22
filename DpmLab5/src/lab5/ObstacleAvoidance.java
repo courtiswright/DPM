@@ -1,4 +1,4 @@
-package logTutorial;
+package lab5;
 
 public class ObstacleAvoidance extends Thread{
 

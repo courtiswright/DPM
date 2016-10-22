@@ -85,10 +85,8 @@ public class Navigation {
 		this.setSpeeds(0, 0);
 	}
 
-	/*
-	 * TurnTo function which takes an angle and boolean as arguments The boolean controls whether or not to stop the
-	 * motors when the turn is completed
-	 */
+	
+	 //TurnTo function which takes an angle and boolean is to stop when the robot reaches the destination
 	public void turnTo(double angle, boolean stop) {
 
 		double error = angle - this.odometer.getAng();

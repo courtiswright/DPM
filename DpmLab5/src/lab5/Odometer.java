@@ -1,4 +1,4 @@
-package logTutorial;
+package lab5;
 
 /*
  * File: Odometer.java

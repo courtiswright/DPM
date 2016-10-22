@@ -1,4 +1,4 @@
-package logTutorial;
+package lab5;
 
 import java.io.File;
 import java.io.FileNotFoundException;

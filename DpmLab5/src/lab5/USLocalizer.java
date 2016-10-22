@@ -1,4 +1,4 @@
-package logTutorial;
+package lab5;
 
 import lejos.hardware.Sound;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;

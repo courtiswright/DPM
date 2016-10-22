@@ -1,4 +1,4 @@
-package logTutorial;
+package lab5;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 
