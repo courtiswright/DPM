@@ -144,4 +144,32 @@ public class BasicNavigator extends Thread{
 						* distance);
 
 	}
+	public void turnAmount(double amount){
+		if(amount>=0) {
+			leftMotor.rotate(convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), true);
+			rightMotor.rotate(-convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), false);
+		}
+		if(amount<0){
+			amount = Math.abs(amount);
+			leftMotor.rotate(-convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), true);
+			rightMotor.rotate(convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), false);
+		}	
+	}
+	public void rotateCCW() {
+		rightMotor.forward();
+		leftMotor.backward();
+	}
+	public void rotateCW(){
+		leftMotor.forward();
+		rightMotor.backward();
+	}
+	
+	
+	//methods originally from SquareDriver class in Lab2
+	private static int convertAngle(double radius, double width, double angle) {
+		return convertDistance(radius, Math.PI * width * angle / 360.0);
+	}
+	private static int convertDistance(double radius, double distance) {
+		return (int) ((180.0 * distance) / (Math.PI * radius));
+	}
 }

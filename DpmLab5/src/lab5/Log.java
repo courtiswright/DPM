@@ -39,7 +39,7 @@ public class Log {
 
 	}
 
-	public static void setLogging(boolean nav, boolean odom, boolean us,boolean avoid, boolean ls) {
+	public static void setLogging(boolean odom, boolean nav, boolean us,boolean avoid, boolean ls) {
 		printNavigator = nav;
 		printOdometer = odom;
 		printUsSensor = us;

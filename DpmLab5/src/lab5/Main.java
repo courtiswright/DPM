@@ -1,10 +1,8 @@
 package lab5;
 
 
-import java.awt.Color;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
-
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.LCD;
@@ -36,46 +34,37 @@ public class Main {
 	
 	public static void main(String[] args) throws FileNotFoundException {
 		
-		Log.setLogging(false,false,false,false, true);
-		Log.setLogWriter("Data.csv");
-		int buttonChoice;
-		//Uncomment this line to print to a file
-//		Log.setLogWriter(System.currentTimeMillis() + ".log");
+		
+		//Code for logging from tutorial
+		// boolean odometer,navigation,UltrasonicSensor, Avoidance, LightSensor 
+		Log.setLogging(false,false,false,false, false);
+	
+		//Prints log info to a file
+		//Log.setLogWriter(System.currentTimeMillis() + ".log");
 		
 		// some objects that need to be instantiated	
-		
-		
-		odometer = new Odometer(leftMotor, rightMotor);
+		odometer = new Odometer(leftMotor, rightMotor, 30, true);
 		UltrasonicPoller usPoller = new UltrasonicPoller(usSensor);
 		nav = new Navigator(odometer,usPoller);
 		LCDInfo lcd = new LCDInfo(odometer);
 			
+		//Asks which part to run
+		lcd.startScreen();
+		int buttonChoice = lcd.getButtonChoice();	
 
-
-		do {
-			// clear the display
-			LCD.clear();
-
-			// ask the user whether the motors should Avoid Block or Go to locations
-			LCD.drawString("< Left | Right >", 0, 0);
-			LCD.drawString("       |        ", 0, 1);
-			LCD.drawString(" Detect| Pt.2   ", 0, 2);
-			LCD.drawString(" Block |		", 0, 3);
-			LCD.drawString("       |		", 0, 4);
-
-			buttonChoice = Button.waitForAnyPress();
-		} while (buttonChoice != Button.ID_LEFT && buttonChoice != Button.ID_RIGHT);
-
-		//if left button is pressed, start first demo
+		//Part 1
 		if (buttonChoice == Button.ID_LEFT) {		
+			
+			//Instantiate SampleProviders and buffer arrays
 			SampleProvider usValue = usSensor.getMode("Distance");
 			SampleProvider colorValue = colorSensor.getMode("RGB");
 			float[] colorData = new float[colorValue.sampleSize()];
 			float[] usData = new float[usValue.sampleSize()];
 			int distance;
 			
+			//Always searching for block
 			while(true){
-				
+				//stores sample into buffer array
 				colorValue.fetchSample(colorData, 0);
 				usValue.fetchSample(usData, 0);
 				distance = (int)(usData[0]*100.0);
@@ -111,9 +100,15 @@ public class Main {
 			odometer.start();
 			usPoller.start();
 			nav.start();
-			lcd.start();
-			
+			lcd.startTimer();
+					
 			localize();
+			//TODO complete course, stopping after every waypoint to look for blocks in 180deg direction. 
+			//If block found move close to it (within 3cm)
+			//Detect if styrofoam
+			//stab it with fast moving adhesive arm
+			//pick up block
+			
 		}
 	
 		while (Button.waitForAnyPress() != Button.ID_ESCAPE);
@@ -121,10 +116,22 @@ public class Main {
 		
 		
 	}
-
+	private static void completeCourse(){
+		int[][] waypoints = {{0,30},{0,60},{30,60},{60,60}};
+		
+		for(int[] point : waypoints){
+			nav.travelTo(point[0],point[1],true);
+			while(nav.isTravelling()){
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 	private static void localize() {
 		
-
 		//set up sample provider and buffer array
 		SampleProvider usValue = usSensor.getMode("Distance");			// colorValue provides samples from this instance
 		float[] usData = new float[usValue.sampleSize()];				// colorData is the buffer in which data are returned

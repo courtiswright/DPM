@@ -1,7 +1,6 @@
 package lab5;
 
 import lejos.hardware.Sound;
-import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.robotics.SampleProvider;
 
 public class USLocalizer {
@@ -11,7 +10,6 @@ public class USLocalizer {
 	private SampleProvider usSensor;
 	private Navigator nav;
 	private float[] usData;
-	private EV3LargeRegulatedMotor leftMotor, rightMotor;
 	private int threshDist = 25;
 		
 	
@@ -19,33 +17,23 @@ public class USLocalizer {
 		this.odo = odo;
 		this.usSensor = usSensor;
 		this.usData = usData;
-		EV3LargeRegulatedMotor[] motors = this.odo.getMotors();
-		this.leftMotor = motors[0];
-		this.rightMotor = motors[1];
-		this.leftMotor = motors[0];
-		this.rightMotor = motors[1];
 		this.nav = navigation;
 	}
 	
 	public void doLocalization() {
 		double angleA, angleB, angleAvg;
 		
-		leftMotor.setSpeed(ROTATION_SPEED);
-		rightMotor.setSpeed(ROTATION_SPEED);
-		
-			
+		nav.setSpeeds(ROTATION_SPEED, ROTATION_SPEED);
+					
 		/* if the robot starts facing a wall, turn it 180 degrees so it has passed
 		 * the appointed threshold distance of 35cm, then start rising edge procedure
 		*/
 		if (getFilteredData() <= threshDist) {
-			leftMotor.rotate(convertAngle(Main.WHEEL_RADIUS, Main.TRACK, 180), true);
-			rightMotor.rotate(-convertAngle(Main.WHEEL_RADIUS, Main.TRACK, 180), false);
-			
+			nav.turnAmount(180);
 		}
 			
-		//start rising edge procedure by turning robot
-		leftMotor.forward();
-		rightMotor.backward();
+		//start falling edge procedure by turning robot
+		nav.rotateCW();
 			
 		/* continuously check for a wall while turning, if one is found, 
 		 * beep, then stop the robot and record the angle it is at in 
@@ -65,12 +53,10 @@ public class USLocalizer {
 		/* stop checking for distance from wall while the robot turns 90 degrees 
 		 * to ensure that the sensor does not stop rotation too early
 		 */
-		leftMotor.rotate(-convertAngle(Main.WHEEL_RADIUS, Main.TRACK, 90), true);
-		rightMotor.rotate(convertAngle(Main.WHEEL_RADIUS, Main.TRACK, 90), false);
+		nav.turnAmount(-90);
 
-		//start normal turning clockwise
-		rightMotor.forward();
-		leftMotor.backward();
+		//start normal turning Counter-clock wise
+		nav.rotateCCW();
 			
 		/* continuously check for a wall while turning, if one is found, beep,
 		 * then stop the robot and record the angle it is at in angleB,
@@ -97,11 +83,13 @@ public class USLocalizer {
 			
 		//turn robot to face along the Y-axis
 		nav.turnTo(0, true);
+		Sound.beep();
 		moveToOrigin();
 		
 	}
 	private void moveToOrigin(){
-		double x, y;
+		double x, y, dx, dy;
+		nav.setSpeeds(ROTATION_SPEED, ROTATION_SPEED);
 		
 		//turn to face perpendicular to bottom wall
 		nav.turnTo(270, true);
@@ -114,12 +102,17 @@ public class USLocalizer {
 		x = getFilteredData();
 		
 		//navigate to origin
+		dx = 23-x;
+		dy = 25-y;
+		
 		nav.turnTo(0, true);
 		Sound.beep();
-		nav.goForward(30-x);
-		nav.turnTo(270, true);
+		nav.goForward(dx);
+		nav.turnTo(90, true);
 		Sound.beep();
-		nav.goForward(30-y);
+		nav.goForward(dy);
+		odo.setPosition(new double [] {0.0, 0.0, 1}, new boolean []{true, true, true});
+		Sound.beep();
 	}
 	
 	public float getFilteredData() {
@@ -130,12 +123,6 @@ public class USLocalizer {
 		return distance;
 	}
 
-	//methods originally from SquareDriver class in Lab2
-	private static int convertAngle(double radius, double width, double angle) {
-		return convertDistance(radius, Math.PI * width * angle / 360.0);
-	}
-	private static int convertDistance(double radius, double distance) {
-		return (int) ((180.0 * distance) / (Math.PI * radius));
-	}
+
 
 }
