@@ -173,5 +173,6 @@ public class Navigator extends BasicNavigator {
 	public boolean isTravelling() {
 		return isNavigating;
 	}
+	
 
 }

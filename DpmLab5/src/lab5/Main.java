@@ -29,8 +29,11 @@ public class Main {
 	// Constants
 	public static final double WHEEL_RADIUS = 2.130;
 	public static final double TRACK = 15.2;
-	private static Navigator nav;
-	private static Odometer odometer;
+	public static Navigator nav;
+	public static Odometer odometer;
+	public static ObstacleAvoidance obstacleAvoider;
+	private static int threshDist = 3;
+	static double blockAng;
 	
 	public static void main(String[] args) throws FileNotFoundException {
 		
@@ -47,6 +50,7 @@ public class Main {
 		UltrasonicPoller usPoller = new UltrasonicPoller(usSensor);
 		nav = new Navigator(odometer,usPoller);
 		LCDInfo lcd = new LCDInfo(odometer);
+		obstacleAvoider = new ObstacleAvoidance(nav);
 			
 		//Asks which part to run
 		lcd.startScreen();
@@ -58,6 +62,7 @@ public class Main {
 			//Instantiate SampleProviders and buffer arrays
 			SampleProvider usValue = usSensor.getMode("Distance");
 			SampleProvider colorValue = colorSensor.getMode("RGB");
+			BlockChecker BC = new BlockChecker();
 			float[] colorData = new float[colorValue.sampleSize()];
 			float[] usData = new float[usValue.sampleSize()];
 			int distance;
@@ -65,26 +70,24 @@ public class Main {
 			//Always searching for block
 			while(true){
 				//stores sample into buffer array
-				colorValue.fetchSample(colorData, 0);
+//				colorValue.fetchSample(colorData, 0);
 				usValue.fetchSample(usData, 0);
 				distance = (int)(usData[0]*100.0);
 				
 				Log.log(Log.Sender.lightSensor, "Color: " + Arrays.toString(colorData));
 				LCD.clear();
-				LCD.drawString("id:" + Float.toString(colorData[0]), 0, 1);
-				LCD.drawString("id:" + Float.toString(colorData[1]), 0, 2);
-				LCD.drawString("id:" + Float.toString(colorData[2]), 0, 3);
+//				LCD.drawString("id:" + Float.toString(colorData[0]), 0, 1);
+//				LCD.drawString("id:" + Float.toString(colorData[1]), 0, 2);
+//				LCD.drawString("id:" + Float.toString(colorData[2]), 0, 3);
 				
-				if(distance<=3) {
+				if(distance<=threshDist) {
 					LCD.drawString("Object detected", 0, 4);
 					
-					//Color Blue has a higher Green rating, lower red rating
-					if(colorData[1] > colorData[0] && colorData[0] > 0.01){
-						if(colorData[2] > colorData[0])
-							LCD.drawString("Block", 0, 5);
+					if(BC.blockCheck()) {
+						LCD.drawString("Block", 0, 5);
 					}
 					else {
-						LCD.drawString("No block", 0, 6);
+						LCD.drawString("No block", 0, 5);
 					}
 					
 					try{
@@ -102,15 +105,59 @@ public class Main {
 			nav.start();
 			lcd.startTimer();
 					
-			localize();
+//			localize();
 			//TODO complete course, stopping after every waypoint to look for blocks in 180deg direction. 
-			//If block found move close to it (within 3cm)
+			//If block found move close to it (within 4cm)
 			//Detect if styrofoam
 			//stab it with fast moving adhesive arm
 			//pick up block
 			
+			SampleProvider usValue = usSensor.getMode("Distance");
+			Scanner SC = new Scanner();
+			float[] usData = new float[usValue.sampleSize()];
+			
+			nav.turnTo(15, false);
+			SC.chooseDirection(120);
+			blockAng = SC.angle;
+			System.out.println("blockAng: " + blockAng);
+			nav.turnTo(blockAng, true);
+			
+			SampleProvider colorValue = colorSensor.getRGBMode();
+			float[] colorData = new float[colorValue.sampleSize()];
+			BlockChecker BC = new BlockChecker();
+			obstacleAvoider.start();
+			int distance;
+			
+			if (SC.shortestDist > threshDist) {
+				nav.goForward(SC.shortestDist-threshDist, false);
+			} 
+			
+			usValue.fetchSample(usData, 0);
+			distance = (int)(usData[0]*100.0);
+			
+			if (distance > threshDist) {
+				nav.goForward(distance - threshDist, false);
+			}
+			
+			if(distance<=threshDist) {
+				LCD.drawString("Object detected", 0, 4);
+				
+				if(BC.blockCheck()) {
+					LCD.drawString("Block", 0, 5);
+				}
+				else {
+					LCD.drawString("No block", 0, 5);
+				}
+				
+				try{
+					Thread.sleep(1000);
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+			}
+			
 		}
-	
+		
 		while (Button.waitForAnyPress() != Button.ID_ESCAPE);
 		System.exit(0);
 		
@@ -120,7 +167,7 @@ public class Main {
 		int[][] waypoints = {{0,30},{0,60},{30,60},{60,60}};
 		
 		for(int[] point : waypoints){
-			nav.travelTo(point[0],point[1],true);
+			nav.travelTo(point[0],point[1], true);
 			while(nav.isTravelling()){
 				try {
 					Thread.sleep(500);
@@ -133,8 +180,8 @@ public class Main {
 	private static void localize() {
 		
 		//set up sample provider and buffer array
-		SampleProvider usValue = usSensor.getMode("Distance");			// colorValue provides samples from this instance
-		float[] usData = new float[usValue.sampleSize()];				// colorData is the buffer in which data are returned
+		SampleProvider usValue = usSensor.getMode("Distance");			// usValue provides samples from this instance
+		float[] usData = new float[usValue.sampleSize()];				// usData is the buffer in which data are returned
 		
 		
 		//instantiate localizer

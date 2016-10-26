@@ -32,8 +32,9 @@ public class ObstacleAvoidance extends Thread{
 		
 		Log.log(Log.Sender.avoidance,"avoiding obstacle!");
 		nav.setSpeeds(0, 0);
-		nav.turnTo(0,true);
-		nav.goForward(5, false); //using false means the Navigation method is used
+//		nav.turnTo(0,true);
+		nav.turnAmount(90);
+		nav.goForward(30); //using false means the Navigation method is used
 		Log.log(Log.Sender.avoidance,"obstacle avoided!");
 		safe = true;
 	}

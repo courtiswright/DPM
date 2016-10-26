@@ -15,7 +15,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class BasicNavigator extends Thread{
 	
-	final static int FAST = 200, SLOW = 100, ACCELERATION = 4000;
+	final static int FAST = 200, SLOW = 100, ACCELERATION = 50;
 	final static double DEG_ERR = 3.0, CM_ERR = 1.0;
 	Odometer odometer;
 	EV3LargeRegulatedMotor leftMotor, rightMotor;
@@ -147,12 +147,12 @@ public class BasicNavigator extends Thread{
 	public void turnAmount(double amount){
 		if(amount>=0) {
 			leftMotor.rotate(convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), true);
-			rightMotor.rotate(-convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), false);
+			rightMotor.rotate(-convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), true);
 		}
 		if(amount<0){
 			amount = Math.abs(amount);
 			leftMotor.rotate(-convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), true);
-			rightMotor.rotate(convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), false);
+			rightMotor.rotate(convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), true);
 		}	
 	}
 	public void rotateCCW() {
@@ -163,7 +163,6 @@ public class BasicNavigator extends Thread{
 		leftMotor.forward();
 		rightMotor.backward();
 	}
-	
 	
 	//methods originally from SquareDriver class in Lab2
 	private static int convertAngle(double radius, double width, double angle) {
