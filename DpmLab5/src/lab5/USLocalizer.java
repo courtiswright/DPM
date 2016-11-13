@@ -29,7 +29,7 @@ public class USLocalizer {
 		 * the appointed threshold distance of 35cm, then start rising edge procedure
 		*/
 		if (getFilteredData() <= threshDist) {
-			nav.turnAmount(180);
+			nav.turnAmount(180, false);
 		}
 			
 		//start falling edge procedure by turning robot
@@ -53,7 +53,7 @@ public class USLocalizer {
 		/* stop checking for distance from wall while the robot turns 90 degrees 
 		 * to ensure that the sensor does not stop rotation too early
 		 */
-		nav.turnAmount(-90);
+		nav.turnAmount(-90, false);
 
 		//start normal turning Counter-clock wise
 		nav.rotateCCW();

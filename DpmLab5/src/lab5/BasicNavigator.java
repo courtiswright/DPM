@@ -144,15 +144,15 @@ public class BasicNavigator extends Thread{
 						* distance);
 
 	}
-	public void turnAmount(double amount){
+	public void turnAmount(double amount, boolean cont){
 		if(amount>=0) {
 			leftMotor.rotate(convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), true);
-			rightMotor.rotate(-convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), true);
+			rightMotor.rotate(-convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), cont);
 		}
 		if(amount<0){
 			amount = Math.abs(amount);
 			leftMotor.rotate(-convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), true);
-			rightMotor.rotate(convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), true);
+			rightMotor.rotate(convertAngle(Main.WHEEL_RADIUS, Main.TRACK, amount), cont);
 		}	
 	}
 	public void rotateCCW() {

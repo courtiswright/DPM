@@ -4,6 +4,7 @@ package lab5;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -29,10 +30,10 @@ public class Main {
 	// Constants
 	public static final double WHEEL_RADIUS = 2.130;
 	public static final double TRACK = 15.2;
-	public static Navigator nav;
-	public static Odometer odometer;
-	public static ObstacleAvoidance obstacleAvoider;
+	private static Navigator nav;
+	private static Odometer odometer;
 	private static int threshDist = 3;
+	private static int threshDist1 = 6;
 	static double blockAng;
 	
 	public static void main(String[] args) throws FileNotFoundException {
@@ -50,7 +51,6 @@ public class Main {
 		UltrasonicPoller usPoller = new UltrasonicPoller(usSensor);
 		nav = new Navigator(odometer,usPoller);
 		LCDInfo lcd = new LCDInfo(odometer);
-		obstacleAvoider = new ObstacleAvoidance(nav);
 			
 		//Asks which part to run
 		lcd.startScreen();
@@ -100,46 +100,83 @@ public class Main {
 		}
 		//Part 2
 		else {
+			
+			//start Threads
 			odometer.start();
 			usPoller.start();
 			nav.start();
 			lcd.startTimer();
-					
-//			localize();
-			//TODO complete course, stopping after every waypoint to look for blocks in 180deg direction. 
-			//If block found move close to it (within 4cm)
-			//Detect if styrofoam
-			//stab it with fast moving adhesive arm
-			//pick up block
 			
+			//Localize
+			localize();
+			
+			//initialize variables
 			SampleProvider usValue = usSensor.getMode("Distance");
-			Scanner SC = new Scanner();
+			Scanner SC = new Scanner(nav, odometer, usSensor);
 			float[] usData = new float[usValue.sampleSize()];
+
+			/*turn to ten degrees to be at a good spot to start scanning.
+			 * then start scanning, moving 110 degrees. Then wait until
+			 * scanning is done to move on.
+			 */
+			nav.turnTo(10, false);
+			SC.chooseDirection(110);
+			while (nav.leftMotor.isMoving() && nav.rightMotor.isMoving()) {
+				//chill
+			}
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
-			nav.turnTo(15, false);
-			SC.chooseDirection(120);
+			//turn to angle of block
 			blockAng = SC.angle;
-			System.out.println("blockAng: " + blockAng);
 			nav.turnTo(blockAng, true);
+			Sound.beep();
 			
+			//initialize color variables
 			SampleProvider colorValue = colorSensor.getRGBMode();
 			float[] colorData = new float[colorValue.sampleSize()];
 			BlockChecker BC = new BlockChecker();
-			obstacleAvoider.start();
 			int distance;
+			boolean first = true;
 			
-			if (SC.shortestDist > threshDist) {
-				nav.goForward(SC.shortestDist-threshDist, false);
-			} 
+			//wait for a moment
+			try {
+				Sound.beep();
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			Sound.beepSequence();
 			
+			//get distance to block
 			usValue.fetchSample(usData, 0);
-			distance = (int)(usData[0]*100.0);
 			
-			if (distance > threshDist) {
-				nav.goForward(distance - threshDist, false);
+			//move toward block until 6cm away
+			while (usData[0]*100 >= (threshDist1)) {
+				Sound.buzz();
+				LCD.drawString("D: " + usData[0]*100, 0, 6);
+				if (first) {
+					nav.setSpeeds(100, 100);
+					leftMotor.forward();
+					rightMotor.forward();
+					first = false;
+				}
+				
+				//constantly update data
+				usValue.fetchSample(usData, 0);
 			}
 			
-			if(distance<=threshDist) {
+			//stop when in range
+			nav.leftMotor.stop();
+			nav.rightMotor.stop();
+			
+			//check if it's a blue block or not
+			if(usData[0] *100<=threshDist) {
 				LCD.drawString("Object detected", 0, 4);
 				
 				if(BC.blockCheck()) {

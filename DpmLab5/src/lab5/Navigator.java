@@ -79,7 +79,6 @@ public class Navigator extends BasicNavigator {
 	}
 
 	public void run() {
-		ObstacleAvoidance avoidance = null;
 		state = State.INIT;
 		while (true) {
 			switch (state) {
@@ -111,8 +110,6 @@ public class Navigator extends BasicNavigator {
 			case TRAVELLING:
 				if (checkEmergency()) { // order matters!
 					state = State.EMERGENCY;
-					avoidance = new ObstacleAvoidance(this);
-					avoidance.start();
 				} else if (!checkIfDone(destx, desty)) {
 					updateTravel();
 				} else { // Arrived!
@@ -121,11 +118,11 @@ public class Navigator extends BasicNavigator {
 					state = State.INIT;
 				}
 				break;
-			case EMERGENCY:
-				if (avoidance.resolved()) {
-					state = State.TURNING;
-				}
-				break;
+//			case EMERGENCY:
+//				if (avoidance.resolved()) {
+//					state = State.TURNING;
+//				}
+//				break;
 			}
 			Log.log(Log.Sender.Navigator, "state: " + state);
 			try {

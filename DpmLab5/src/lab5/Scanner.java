@@ -3,24 +3,38 @@ package lab5;
 import java.util.HashMap;
 
 import lejos.hardware.lcd.LCD;
+import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.robotics.SampleProvider;
 
 public class Scanner {
 
-	SampleProvider usValue = Main.usSensor.getMode("Distance");
-	float[] usData = new float[usValue.sampleSize()];
+	//Instantiate objects
+	EV3UltrasonicSensor usSensor;
 	int distance;
 	double angle, startAng, finalHeading, errorHigh, errorLow;
 	Integer shortestDist = 255;
 	HashMap<Integer, Double> distAtAng = new HashMap<Integer, Double>();
+	Navigator nav;
+	Odometer odo;
 	
-	public Scanner() {
-		
+	//constructor
+	public Scanner(Navigator nav, Odometer odo, EV3UltrasonicSensor usSensor) {
+		this.nav = nav;
+		this.odo = odo;
+		this.usSensor = usSensor;
 	}
 	
+	//Instantiate US sensor stuff 
+	SampleProvider usValue = Main.usSensor.getMode("Distance");
+	float[] usData = new float[usValue.sampleSize()];
+	
+	/* chooses direction in which closest block is located by scanning and polling while
+	 * turning. 
+	 * 
+	 */
 	public void chooseDirection(int turnAmnt) {
-		startAng = Main.odometer.getAng();
-		Main.nav.turnAmount(turnAmnt);
+		startAng = odo.getAng();
+		nav.turnAmount(turnAmnt, true);
 		
 		if ((startAng - turnAmnt) < 0) {
 			finalHeading = 360 + (startAng - turnAmnt);
@@ -30,19 +44,14 @@ public class Scanner {
 		
 		errorHigh = finalHeading + 2;
 		errorLow = finalHeading - 2;
-		
-//		System.out.println("turnAmnt: " + turnAmnt + " errorHigh: " + errorHigh + " errorLow: " + errorLow);
-				
-		while (Main.odometer.getAng() > errorHigh || Main.odometer.getAng() < errorLow) {	
+						
+		while (odo.getAng() > errorHigh || odo.getAng() < errorLow) {	
 			
 			usValue.fetchSample(usData, 0);
 			distance = (int)(usData[0]*100.0);
 			
-			distAtAng.put((Integer)distance, (Double)Main.odometer.getAng());
-//			System.out.println("Key: " + distance + " Value: " + distAtAng.get(distance));
+			distAtAng.put((Integer)distance, (Double)odo.getAng());
 		}
-		
-//		System.out.println("Angle: " + Main.odometer.getAng());
 		
 		for(Integer key : distAtAng.keySet()) {
 			if (key < shortestDist) {
@@ -51,9 +60,5 @@ public class Scanner {
 		}
 		
 		angle = (double)distAtAng.get(shortestDist);
-//		System.out.println("");
-//		System.out.println("ShortDist: " + shortestDist + " Angle: " + angle);
-		
-//		return angle;
 	}
 }

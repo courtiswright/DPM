@@ -64,39 +64,6 @@ public class Lab4 {
 		}
 		
 		
-		//This is not necessary as there is only one task to do here.
-		
-		//Simply call the first method, execute everything and then call the second one. The message on the screen could change
-		//	depending on which stage the robot is at in execution.
-		
-//		do {
-//			// clear the display
-//			display.clear();
-//
-//			// ask the user whether they would like to work on the course without the obstacle or with it.
-//			display.drawString("< Left | Right >", 0, 0);
-//			display.drawString("       |        ", 0, 1);
-//			display.drawString(" US    | Light	", 0, 2);
-//			display.drawString(" Local | Local  ", 0, 3);
-//			display.drawString(" ize   | ize    ", 0, 4);
-//
-//			buttonChoice = Button.waitForAnyPress();
-//		} while (buttonChoice != Button.ID_LEFT && buttonChoice != Button.ID_RIGHT);
-//		
-//		//if right side is chosen, the robot uses the light sensor to localize
-//		if(buttonChoice == Button.ID_RIGHT){
-//			LCDInfo lcd = new LCDInfo(odo, display, usl);
-//			usl.doLocalization();
-//			
-//		}
-//		
-//		//By choosing the left side, the robot uses the ultrasonic sensor to localize
-//		else{
-//			LCDInfo lcd = new LCDInfo(odo, display, usl);
-//			lsl.doLocalization();
-//			
-//		}
-//		
 		while (Button.waitForAnyPress() != Button.ID_ESCAPE);
 		System.exit(0);	
 		
